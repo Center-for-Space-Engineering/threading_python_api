@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, "..")
 from logging_system_display_python_api.logger import logggerCustom
 from logging_system_display_python_api.messageHandler import messageHandler
-from logging_system_display_python_api.threadWrapper import threadWrapper # running from server
+from threading_python_api.threadWrapper import threadWrapper # running from server
 # from threadWrapper import threadWrapper # running alone
 from termcolor import colored
 import datetime
