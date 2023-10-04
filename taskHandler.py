@@ -1,11 +1,10 @@
-
 import threading
 import time
 import sys
 sys.path.insert(0, "..")
-from logging_system_display_python_api.logger import logggerCustom
-from logging_system_display_python_api.messageHandler import messageHandler
-from threading_python_api.threadWrapper import threadWrapper # running from server
+from infoHandling.logger import logggerCustom
+from infoHandling.messageHandler import messageHandler
+from taskHandling.threadWrapper import threadWrapper # running from server
 # from threadWrapper import threadWrapper # running alone
 from termcolor import colored
 import datetime
@@ -16,14 +15,17 @@ class taskHandler():
         self.__coms = coms 
         self.__logger = logggerCustom("logs/taskHandler.txt")
         self.addThread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
+        self.__completedTaskes = {}
+        self.__requestLock = threading.Lock()
 
 
-    ''''
-    This function takes a taskID (string) and a run function (function to start the thread)
-    It then starts a theard and adds it to the dictionary of threads. 
-    In side the dictionary it holds the threads. 
-    '''
+    
     def addThread(self, runFunction, taskID, wrapper, args = None):
+        ''''
+        This function takes a taskID (string) and a run function (function to start the thread)
+        It then starts a theard and adds it to the dictionary of threads. 
+        In side the dictionary it holds the threads. 
+        '''
         if(args == None):
             self.__threads[taskID] = (threading.Thread(target=runFunction), wrapper)
             self.__coms.printMessage(f"Thread {taskID} created with no args. ")
@@ -34,29 +36,35 @@ class taskHandler():
             self.__logger.sendLog(f"Thread {taskID} created with args {args}. ")
 
     
-    '''
-    starts all the threads in the threads dictinary
-    '''
+    
     def start(self):
+        '''
+        starts all the threads in the threads dictinary
+        '''
         for thread in self.__threads:
             if(self.__threads[thread][1].getStatus() == "NOT STARTED"):
                 self.__threads[thread][0].start() #start thread
                 self.__coms.printMessage(f"Thread {thread} started. ")
                 self.__logger.sendLog(f"Thread {thread} started. ")
 
-
     def getThreadStatus(self):
         reports = [] # we need to pass a list of reports so the all get displayed at the same time. 
         for thread in self.__threads:
             if self.__threads[thread][0].is_alive():
-                reports.append((thread, "Running", colored(f"[{datetime.datetime.now()}]", 'light_blue')))
+                reports.append((thread, "Running", f"[{datetime.datetime.now()}]"))
                 self.__logger.sendLog(f"Thread {thread} is Running. ")
             else :
                 if(self.__threads[thread][1].getStatus() == "Complete"):
-                    reports.append((thread, "Complete", colored(f"[{datetime.datetime.now()}]", 'light_blue')))
+                    try:
+                        doneTime = self.__completedTaskes[thread]
+                    except :
+                        self.__completedTaskes[thread] = datetime.datetime.now()
+                        doneTime = self.__completedTaskes[thread]
+
+                    reports.append((thread, "Complete", f"[{doneTime}]"))
                     self.__logger.sendLog(f"Thread {thread} is Complete. ")
                 else :
-                    reports.append((thread, "Error", colored(f"[{datetime.datetime.now()}]", 'light_blue')))
+                    reports.append((thread, "Error", f"[{datetime.datetime.now()}]"))
                     self.__logger.sendLog(f"Thread {thread} had an Error. ")
         self.__coms.reportThread(reports)
 
@@ -76,7 +84,7 @@ class taskHandler():
                 thread: The name of the thread as you see it on the gui, or as it is set in main.py
                 request: index 0 is the function name, 
                         index 1 to the end is the args for that function.
-            NOTE: even if  you are only passing one thing it needs to be a list! 
+                NOTE: even if  you are only passing one thing it needs to be a list! 
                     EX: ['funcName']
         '''
         with self.__requestLock:
@@ -95,4 +103,4 @@ class taskHandler():
         '''
         with self.__requestLock:
             temp = self.__threads[thread][1].getRequest(requestNum)
-        return temp
+        return temp  
