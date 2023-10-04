@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, "..")
 from infoHandling.logger import logggerCustom
 from infoHandling.messageHandler import messageHandler
-from taskHandling.threadWrapper import threadWrapper # running from server
+from threading_python_api.threadWrapper import threadWrapper # running from server
 # from threadWrapper import threadWrapper # running alone
 from termcolor import colored
 import datetime
