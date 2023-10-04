@@ -1,7 +1,6 @@
 import time
 import threading
 import random
-import sys
 
 class threadWrapper():
     def __init__(self, coms = None):
@@ -22,21 +21,21 @@ class threadWrapper():
         self.__status = "Running"
         for i in range(5):
             if self.__coms != None:
-                self.__coms.printMessage("Test 1 working...")
+                self.__coms.print_message("Test 1 working...")
                 time.sleep(1)
         if self.__coms != None:
-            self.__coms.printMessage("Test 1 complete")
+            self.__coms.print_message("Test 1 complete")
         self.__status = "Complete"
 
     def test2(self):
         self.__status = "Running"
         for i in range(40):
             if self.__coms != None:
-                # self.__coms.printMessage("Test 2 dummy bytres received...")
-                self.__coms.reportBytes(random.randint(1, 11) * 1000)
+                # self.__coms.print_message("Test 2 dummy bytres received...")
+                self.__coms.report_bytes(random.randint(1, 11) * 1000)
                 time.sleep(0.25)
         if self.__coms != None:
-            self.__coms.printMessage("Test 2 complete")
+            self.__coms.print_message("Test 2 complete")
         self.__status = "Complete"
 
     def getStatus(self):
@@ -46,7 +45,7 @@ class threadWrapper():
         with self.__lockStatus:
             self.__status = status
 
-    def getRunning(self):
+    def get_running(self):
         with self.__lockRunning:
             return self.__RUNNING
     def kill_Task(self):
@@ -94,7 +93,7 @@ class threadWrapper():
         '''
         self.setStatus("Running")
         sleep = False
-        while(self.getRunning()):
+        while(self.get_running()):
             request = self.getNextRequest()
             # check to see if there is a request
             if(request != None):

@@ -3,7 +3,7 @@ import threading
 import time
 import sys
 sys.path.insert(0, "..")
-from logging_system_display_python_api.logger import logggerCustom
+from logging_system_display_python_api.logger import loggerCustom
 from logging_system_display_python_api.messageHandler import messageHandler
 from threading_python_api.threadWrapper import threadWrapper # running from server
 # from threadWrapper import threadWrapper # running alone
@@ -14,7 +14,7 @@ class taskHandler():
     def __init__(self, coms):
         self.__threads = {}
         self.__coms = coms 
-        self.__logger = logggerCustom("logs/taskHandler.txt")
+        self.__logger = loggerCustom("logs/taskHandler.txt")
         self.addThread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
 
 
@@ -26,12 +26,12 @@ class taskHandler():
     def addThread(self, runFunction, taskID, wrapper, args = None):
         if(args == None):
             self.__threads[taskID] = (threading.Thread(target=runFunction), wrapper)
-            self.__coms.printMessage(f"Thread {taskID} created with no args. ")
-            self.__logger.sendLog(f"Thread {taskID} created with no args. ")
+            self.__coms.print_message(f"Thread {taskID} created with no args. ")
+            self.__logger.send_log(f"Thread {taskID} created with no args. ")
         else :
             self.__threads[taskID] = (threading.Thread(target=runFunction, args=args), wrapper)
-            self.__coms.printMessage(f"Thread {taskID} created with args {args}. ")
-            self.__logger.sendLog(f"Thread {taskID} created with args {args}. ")
+            self.__coms.print_message(f"Thread {taskID} created with args {args}. ")
+            self.__logger.send_log(f"Thread {taskID} created with args {args}. ")
 
     
     '''
@@ -41,8 +41,8 @@ class taskHandler():
         for thread in self.__threads:
             if(self.__threads[thread][1].getStatus() == "NOT STARTED"):
                 self.__threads[thread][0].start() #start thread
-                self.__coms.printMessage(f"Thread {thread} started. ")
-                self.__logger.sendLog(f"Thread {thread} started. ")
+                self.__coms.print_message(f"Thread {thread} started. ")
+                self.__logger.send_log(f"Thread {thread} started. ")
 
 
     def getThreadStatus(self):
@@ -50,20 +50,20 @@ class taskHandler():
         for thread in self.__threads:
             if self.__threads[thread][0].is_alive():
                 reports.append((thread, "Running", colored(f"[{datetime.datetime.now()}]", 'light_blue')))
-                self.__logger.sendLog(f"Thread {thread} is Running. ")
+                self.__logger.send_log(f"Thread {thread} is Running. ")
             else :
                 if(self.__threads[thread][1].getStatus() == "Complete"):
                     reports.append((thread, "Complete", colored(f"[{datetime.datetime.now()}]", 'light_blue')))
-                    self.__logger.sendLog(f"Thread {thread} is Complete. ")
+                    self.__logger.send_log(f"Thread {thread} is Complete. ")
                 else :
                     reports.append((thread, "Error", colored(f"[{datetime.datetime.now()}]", 'light_blue')))
-                    self.__logger.sendLog(f"Thread {thread} had an Error. ")
-        self.__coms.reportThread(reports)
+                    self.__logger.send_log(f"Thread {thread} had an Error. ")
+        self.__coms.report_thread(reports)
 
     def killTasks(self):
         for thread in self.__threads:
             self.__threads[thread][1].kill_Task() 
-            self.__logger.sendLog(f"Thread {thread} has been killed. ")
+            self.__logger.send_log(f"Thread {thread} has been killed. ")
 
     def passRequest(self, thread, request):
         '''
