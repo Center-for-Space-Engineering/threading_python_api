@@ -2,7 +2,7 @@ import threading
 import time
 import sys
 sys.path.insert(0, "..")
-from logging_system_display_python_api.logger import logggerCustom
+from logging_system_display_python_api.logger import loggerCustom
 from logging_system_display_python_api.messageHandler import messageHandler
 from threading_python_api.threadWrapper import threadWrapper # running from server
 # from threadWrapper import threadWrapper # running alone
@@ -13,7 +13,7 @@ class taskHandler():
     def __init__(self, coms):
         self.__threads = {}
         self.__coms = coms 
-        self.__logger = logggerCustom("logs/taskHandler.txt")
+        self.__logger = loggerCustom("logs/taskHandler.txt")
         self.addThread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
         self.__completedTaskes = {}
         self.__requestLock = threading.Lock()
