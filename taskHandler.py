@@ -28,12 +28,12 @@ class taskHandler():
         '''
         if(args == None):
             self.__threads[taskID] = (threading.Thread(target=runFunction), wrapper)
-            self.__coms.printMessage(f"Thread {taskID} created with no args. ")
-            self.__logger.sendLog(f"Thread {taskID} created with no args. ")
+            self.__coms.print_message(f"Thread {taskID} created with no args. ")
+            self.__logger.send_log(f"Thread {taskID} created with no args. ")
         else :
             self.__threads[taskID] = (threading.Thread(target=runFunction, args=args), wrapper)
-            self.__coms.printMessage(f"Thread {taskID} created with args {args}. ")
-            self.__logger.sendLog(f"Thread {taskID} created with args {args}. ")
+            self.__coms.print_message(f"Thread {taskID} created with args {args}. ")
+            self.__logger.send_log(f"Thread {taskID} created with args {args}. ")
 
     
     
@@ -44,15 +44,15 @@ class taskHandler():
         for thread in self.__threads:
             if(self.__threads[thread][1].getStatus() == "NOT STARTED"):
                 self.__threads[thread][0].start() #start thread
-                self.__coms.printMessage(f"Thread {thread} started. ")
-                self.__logger.sendLog(f"Thread {thread} started. ")
+                self.__coms.print_message(f"Thread {thread} started. ")
+                self.__logger.send_log(f"Thread {thread} started. ")
 
     def getThreadStatus(self):
         reports = [] # we need to pass a list of reports so the all get displayed at the same time. 
         for thread in self.__threads:
             if self.__threads[thread][0].is_alive():
                 reports.append((thread, "Running", f"[{datetime.datetime.now()}]"))
-                self.__logger.sendLog(f"Thread {thread} is Running. ")
+                self.__logger.send_log(f"Thread {thread} is Running. ")
             else :
                 if(self.__threads[thread][1].getStatus() == "Complete"):
                     try:
@@ -62,16 +62,16 @@ class taskHandler():
                         doneTime = self.__completedTaskes[thread]
 
                     reports.append((thread, "Complete", f"[{doneTime}]"))
-                    self.__logger.sendLog(f"Thread {thread} is Complete. ")
+                    self.__logger.send_log(f"Thread {thread} is Complete. ")
                 else :
                     reports.append((thread, "Error", f"[{datetime.datetime.now()}]"))
-                    self.__logger.sendLog(f"Thread {thread} had an Error. ")
-        self.__coms.reportThread(reports)
+                    self.__logger.send_log(f"Thread {thread} had an Error. ")
+        self.__coms.report_thread(reports)
 
     def killTasks(self):
         for thread in self.__threads:
             self.__threads[thread][1].kill_Task() 
-            self.__logger.sendLog(f"Thread {thread} has been killed. ")
+            self.__logger.send_log(f"Thread {thread} has been killed. ")
 
     def passRequest(self, thread, request):
         '''
