@@ -127,7 +127,7 @@ def main():
     threadPool.kill_tasks()
 
 ```
-Things to note about the example\
+Things to note about the example
 1. This now overrides the `Thread Wrappper run` function. The user is now free to decide how to implerment run.
 2. The implementation of `main()` does not change, excepte for one pramater on the `add_thread` function call.
 3. To call the `users_function_with_args` some where in the code, and assuming that the the `messageHandler` class is call `self.__coms`, the function call would be: `self.__coms.send_request('Users class', ['users_function_with_args',arg1, arg2, arg3, ...])`
