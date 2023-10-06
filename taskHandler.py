@@ -1,15 +1,31 @@
+'''
+    This module handles all the threads and running them. 
+'''
 import threading
-import time
-import sys
-sys.path.insert(0, "..")
-from logging_system_display_python_api.logger import loggerCustom
-from logging_system_display_python_api.messageHandler import messageHandler
-from threading_python_api.threadWrapper import threadWrapper # running from server
-# from threadWrapper import threadWrapper # running alone
-from termcolor import colored
 import datetime
+from logging_system_display_python_api.logger import loggerCustom # pylint: disable=import-error
+
 
 class taskHandler():
+    '''
+        This class is what collects all the task and then runs them. It also checks on the status of every class. 
+        The status is set by using the following command: super().setStatus("Running"). When ever a task is created it 
+        is given the status of "NOT STARTED". When it is finished it is given the status of "Complete". If the task every 
+        crashes it should return a status of "Error". Remeber that the status of "Running" and "Complete" should be set 
+        by the user. With the one excetion of "Running" when the users just uses the prebuilt run function implemented in 
+        `threadWrapper`.
+
+        The general function of this class is that it implements a threading api as follows. First a thread is added use 
+        addThread. NOTE: This only adds the thread to a dictionary. It DOES NOT start the thread at this time. To start
+        all the threads the user then calls the `start` function. This will start all threads in the dictionary. It
+        can all be called multiple times with out fear of conflict. 
+
+        For messaging there are the `passRequest` and `passReturn` functions. These functions are implemented by the 
+        `messageHandler` in the `logging_system_display_python_api`. However if the user  wish to not use that api, or 
+        implement theself here is how they work. The `passRequest` takes in a thread name and then access that thread
+        and pass the function name and args to it. The `passReturn` return then checks to see if the task has completed 
+        the request and returns None or the value from the task.
+    '''
     def __init__(self, coms):
         self.__threads = {}
         self.__coms = coms 
@@ -22,11 +38,11 @@ class taskHandler():
     
     def addThread(self, runFunction, taskID, wrapper, args = None):
         ''''
-        This function takes a taskID (string) and a run function (function to start the thread)
-        It then starts a theard and adds it to the dictionary of threads. 
-        In side the dictionary it holds the threads. 
+            This function takes a taskID (string) and a run function (function to start the thread)
+            It then starts a theard and adds it to the dictionary of threads. 
+            In side the dictionary it holds the threads. 
         '''
-        if(args == None):
+        if args is None:
             self.__threads[taskID] = (threading.Thread(target=runFunction), wrapper)
             self.__coms.print_message(f"Thread {taskID} created with no args. ")
             self.__logger.send_log(f"Thread {taskID} created with no args. ")
@@ -39,25 +55,28 @@ class taskHandler():
     
     def start(self):
         '''
-        starts all the threads in the threads dictinary
+            starts all the threads in the threads dictinary
         '''
-        for thread in self.__threads:
-            if(self.__threads[thread][1].getStatus() == "NOT STARTED"):
+        for thread in self.__threads: #pylint: disable=C0206
+            if self.__threads[thread][1].getStatus() == "NOT STARTED":
                 self.__threads[thread][0].start() #start thread
                 self.__coms.print_message(f"Thread {thread} started. ")
                 self.__logger.send_log(f"Thread {thread} started. ")
 
     def getThreadStatus(self):
+        '''
+            Gets the thread status, then sends message to the `Message handler class`
+        '''
         reports = [] # we need to pass a list of reports so the all get displayed at the same time. 
-        for thread in self.__threads:
+        for thread in self.__threads: #pylint: disable=C0206
             if self.__threads[thread][0].is_alive():
                 reports.append((thread, "Running", f"[{datetime.datetime.now()}]"))
                 self.__logger.send_log(f"Thread {thread} is Running. ")
             else :
-                if(self.__threads[thread][1].getStatus() == "Complete"):
+                if self.__threads[thread][1].getStatus() == "Complete":
                     try:
                         doneTime = self.__completedTaskes[thread]
-                    except :
+                    except : # pylint: disable=w0702
                         self.__completedTaskes[thread] = datetime.datetime.now()
                         doneTime = self.__completedTaskes[thread]
 
@@ -69,7 +88,10 @@ class taskHandler():
         self.__coms.report_thread(reports)
 
     def killTasks(self):
-        for thread in self.__threads:
+        '''
+            This function is set running to false. It is up to the user to makes sure the task stops running after that. 
+        '''
+        for thread in self.__threads: #pylint: disable=C0206
             self.__threads[thread][1].kill_Task() 
             self.__logger.send_log(f"Thread {thread} has been killed. ")
 
@@ -88,7 +110,7 @@ class taskHandler():
                     EX: ['funcName']
         '''
         with self.__requestLock:
-            if(len(request) > 0):
+            if len(request) > 0:
                 temp = self.__threads[thread][1].makeRequest(request[0], args = request[1:])
             else :
                 temp = self.__threads[thread][1].makeRequest(request[0])
@@ -103,4 +125,4 @@ class taskHandler():
         '''
         with self.__requestLock:
             temp = self.__threads[thread][1].getRequest(requestNum)
-        return temp  
+        return temp

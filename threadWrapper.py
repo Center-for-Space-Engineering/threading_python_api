@@ -1,8 +1,19 @@
+'''
+    This class is ment to be inherited by other classes. Any class that wants to use 
+    `taskHandler` needs to use this class.
+'''
+
 import time
 import threading
 import random
 
 class threadWrapper():
+    '''
+        This class is used as a way to make any other class meet the min requirements to work with 
+        taskHandler. The user can override any of the function if they wish. Also long as the base
+        fucntionality is implemented. In addition when you inherite this class, YOU MUST call the
+        construtor. (super().__init__())
+    '''
     def __init__(self, coms = None):
         self.__status = "NOT STARTED"
         self.__RUNNING = True
@@ -18,6 +29,7 @@ class threadWrapper():
 
 
     def test1(self):
+        # pylint: disable=missing-function-docstring
         self.__status = "Running"
         for i in range(5):
             if self.__coms != None:
@@ -28,6 +40,7 @@ class threadWrapper():
         self.__status = "Complete"
 
     def test2(self):
+        # pylint: disable=missing-function-docstring
         self.__status = "Running"
         for i in range(40):
             if self.__coms != None:
@@ -39,13 +52,16 @@ class threadWrapper():
         self.__status = "Complete"
 
     def getStatus(self):
+        # pylint: disable=missing-function-docstring
         with self.__lockStatus:
             return self.__status
     def setStatus(self, status):
+        # pylint: disable=missing-function-docstring
         with self.__lockStatus:
             self.__status = status
 
     def get_running(self):
+        # pylint: disable=missing-function-docstring
         with self.__lockRunning:
             return self.__RUNNING
     def kill_Task(self):
@@ -76,6 +92,7 @@ class threadWrapper():
                 return None 
     
     def getNextRequest(self):
+        # pylint: disable=missing-function-docstring
         with self.__requestLock: 
             if(len(self.__request) > 0):
                 temp = self.__request.pop(0) # set a local var to the reqest num so we can relase the mutex
@@ -84,6 +101,7 @@ class threadWrapper():
         return temp
     
     def completRequest(self, key, returnVal):
+        # pylint: disable=missing-function-docstring
         self.__completedRequestes[key] = returnVal
 
    
