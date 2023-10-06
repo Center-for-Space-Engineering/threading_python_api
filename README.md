@@ -78,7 +78,7 @@ def main():
     threadPool.kill_tasks()
 
 ```
-Things to note about the example\
+Things to note about the example
 1. to call the `users_function` some where in the code, and assuming that the the `messageHandler` class is call `self.__coms`, the function call would be: `self.__coms.send_request('Users class', ['users_function'])`
 2. That the main thread needs to stay alive while other threads are running. In other words the main thread does not wait for all child threads to finish exicution. That is the purpose of the `while running` loop.
 3. `userObj.run` doesn't have to be the function that is pass to the `Task Handler`. Any function can be passed, for easy of reading the code I ussally name it run. 
