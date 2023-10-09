@@ -111,9 +111,9 @@ class taskHandler():
         '''
         with self.__request_lock:
             if len(request) > 0:
-                temp = self.__threads[thread][1].makeRequest(request[0], args = request[1:])
+                temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
             else :
-                temp = self.__threads[thread][1].makeRequest(request[0])
+                temp = self.__threads[thread][1].make_request(request[0])
         return temp
             
     def pass_return(self, thread, requestNum):
@@ -124,5 +124,5 @@ class taskHandler():
                 requestNum: the number that you got from passReequests, this is basically your ticket to map info back and forth.
         '''
         with self.__request_lock:
-            temp = self.__threads[thread][1].getRequest(requestNum)
+            temp = self.__threads[thread][1].get_request(requestNum)
         return temp
