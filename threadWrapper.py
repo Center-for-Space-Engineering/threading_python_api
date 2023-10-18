@@ -53,6 +53,23 @@ class threadWrapper():
             temp = self.__requet_num # set a local var to the reqest num so we can relase the mutex
         return temp
     
+    def check_request(self, requestNum):
+        '''
+            This function is for the small set of case where it is nessary to check and see if the request has completed as
+            aposed to checking the return val. 
+
+            Input:
+                requestNum
+            output:
+                true/false
+        '''
+        with self.__request_lock:
+            try :
+                self.__completed_requestes[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
+                return True
+            except :
+                return False 
+    
     
     def get_request(self, requestNum):
         '''
