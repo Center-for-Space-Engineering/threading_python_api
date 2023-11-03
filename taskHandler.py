@@ -33,9 +33,6 @@ class taskHandler():
         self.add_thread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
         self.__completed_taskes = {}
         self.__request_lock = threading.Lock()
-
-
-    
     def add_thread(self, runFunction, taskID, wrapper, args = None):
         ''''
             This function takes a taskID (string) and a run function (function to start the thread)
@@ -50,9 +47,6 @@ class taskHandler():
             self.__threads[taskID] = (threading.Thread(target=runFunction, args=args), wrapper)
             self.__coms.print_message(f"Thread {taskID} created with args {args}. ")
             self.__logger.send_log(f"Thread {taskID} created with args {args}. ")
-
-    
-    
     def start(self):
         '''
             starts all the threads in the threads dictinary
@@ -62,7 +56,6 @@ class taskHandler():
                 self.__threads[thread][0].start() #start thread
                 self.__coms.print_message(f"Thread {thread} started. ")
                 self.__logger.send_log(f"Thread {thread} started. ")
-
     def get_thread_status(self):
         '''
             Gets the thread status, then sends message to the `Message handler class`
@@ -76,6 +69,10 @@ class taskHandler():
                 if self.__threads[thread][1].get_status() == "Complete":
                     try:
                         doneTime = self.__completed_taskes[thread]
+                        # print(f"{datetime.datetime.now().timestamp()} {doneTime.timestamp()}")
+                        if (int (datetime.datetime.now().timestamp()) - int (doneTime.timestamp())) > 5 : # five second time out
+                            del self.__completed_taskes[thread]
+                            print(f"{self.__completed_taskes[thread]}")
                     except : # pylint: disable=w0702
                         self.__completed_taskes[thread] = datetime.datetime.now()
                         doneTime = self.__completed_taskes[thread]
@@ -86,7 +83,6 @@ class taskHandler():
                     reports.append((thread, "Error", f"[{datetime.datetime.now()}]"))
                     self.__logger.send_log(f"Thread {thread} had an Error. ")
         self.__coms.report_thread(reports)
-
     def kill_tasks(self):
         '''
             This function is set running to false. It is up to the user to makes sure the task stops running after that. 
@@ -94,7 +90,6 @@ class taskHandler():
         for thread in self.__threads: #pylint: disable=C0206
             self.__threads[thread][1].kill_Task() 
             self.__logger.send_log(f"Thread {thread} has been killed. ")
-
     def pass_request(self, thread, request):
         '''
             This function is ment to pass information to other threads with out the two threads knowing about each other.
@@ -114,8 +109,7 @@ class taskHandler():
                 temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
             else :
                 temp = self.__threads[thread][1].make_request(request[0])
-        return temp
-            
+        return temp   
     def pass_return(self, thread, requestNum):
         '''
             This function is ment to pass the return values form a thread to another thread, without the threads having explicit knowlage of eachother. 
@@ -125,8 +119,7 @@ class taskHandler():
         '''
         with self.__request_lock:
             temp = self.__threads[thread][1].get_request(requestNum)
-        return temp
-    
+        return temp 
     def check_request(self, thread, requestNum):
         '''
             This function is for the small set of case where it is nessary to check and see if the request has completed as
