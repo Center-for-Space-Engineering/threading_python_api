@@ -26,13 +26,17 @@ class taskHandler():
         and pass the function name and args to it. The `pass_return` return then checks to see if the task has completed 
         the request and returns None or the value from the task.
     '''
-    def __init__(self, coms):
+    def __init__(self, coms, task_handler_name = 'task_handler'):
         self.__threads = {}
         self.__coms = coms 
         self.__logger = loggerCustom("logs/taskHandler.txt")
         self.add_thread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
         self.__completed_taskes = {}
         self.__request_lock = threading.Lock()
+        self.__name = task_handler_name
+        self.__func_map = {
+            'add_thread_request_func' : self.add_thread_request_func 
+        }
     def add_thread(self, runFunction, taskID, wrapper, args = None):
         ''''
             This function takes a taskID (string) and a run function (function to start the thread)
@@ -47,15 +51,18 @@ class taskHandler():
             self.__threads[taskID] = (threading.Thread(target=runFunction, args=args), wrapper)
             self.__coms.print_message(f"Thread {taskID} created with args {args}. ")
             self.__logger.send_log(f"Thread {taskID} created with args {args}. ")
-    def start(self):
+    def start(self, check=True, thread = ''):
         '''
             starts all the threads in the threads dictinary
         '''
-        for thread in self.__threads: #pylint: disable=C0206
-            if self.__threads[thread][1].get_status() == "NOT STARTED":
-                self.__threads[thread][0].start() #start thread
-                self.__coms.print_message(f"Thread {thread} started. ")
-                self.__logger.send_log(f"Thread {thread} started. ")
+        if check :
+            for thread in self.__threads: #pylint: disable=C0206
+                if self.__threads[thread][1].get_status() == "NOT STARTED":
+                    self.__threads[thread][0].start() #start thread
+                    self.__coms.print_message(f"Thread {thread} started. ")
+                    self.__logger.send_log(f"Thread {thread} started. ")
+        else :
+            self.__threads[thread][0].start()
     def get_thread_status(self):
         '''
             Gets the thread status, then sends message to the `Message handler class`
@@ -106,9 +113,11 @@ class taskHandler():
         '''
         with self.__request_lock:
             if len(request) > 0:
-                temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
+                if self.__name == thread: temp = self.__func_map[request[0]](request[1:])
+                else : temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
             else :
-                temp = self.__threads[thread][1].make_request(request[0])
+                if self.__name == thread: temp = self.__func_map[request[0]]()
+                else : temp = self.__threads[thread][1].make_request(request[0])
         return temp   
     def pass_return(self, thread, requestNum):
         '''
@@ -133,4 +142,24 @@ class taskHandler():
         with self.__request_lock:
             temp = self.__threads[thread][1].check_request(requestNum)
         return temp
+    def add_thread_request_func(self, args):
+        '''
+            This function is so that other class who dont know about the thread handler can send a request to start a new thread. (The gui display uses theis.)
 
+            ARGS:
+                args[0] : function to run
+                args[1] : the name you want the thread to have
+                args[2] : the class object of the thread. (Must inharrite form the threadWrapper class)
+                args[3] : any args to be passed into the thread. 
+        '''
+        runFunction = args[0]
+        taskID = args[1]
+        wrapper = args[2] 
+        if len(args) > 3 : thread_args = args[3]
+        else : thread_args = None
+
+        #add the thread 
+        self.add_thread(runFunction, taskID, wrapper, args = thread_args)      
+        #start the thread
+        self.start(check=False, thread=taskID) 
+        return True #this is 

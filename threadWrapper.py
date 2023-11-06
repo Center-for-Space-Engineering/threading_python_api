@@ -69,8 +69,6 @@ class threadWrapper():
                 return True
             except :
                 return False 
-    
-    
     def get_request(self, requestNum):
         '''
             Check to see if the task has been complete, if it returns None then it has not been completed. 
@@ -82,7 +80,6 @@ class threadWrapper():
                 return temp
             except :
                 return None 
-    
     def get_next_request(self):
         # pylint: disable=missing-function-docstring
         with self.__request_lock: 
@@ -91,12 +88,9 @@ class threadWrapper():
             else :
                 temp = None
         return temp
-    
     def complet_request(self, key, returnVal):
         # pylint: disable=missing-function-docstring
         self.__completed_requestes[key] = returnVal
-
-   
     def run(self):
         '''
             This function is for multi threading purpose. It works by using a FIFO queue to process Task assigned to it by other threads.
