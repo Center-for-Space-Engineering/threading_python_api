@@ -13,7 +13,7 @@ class threadWrapper():
         fucntionality is implemented. In addition when you inherite this class, YOU MUST call the
         construtor. (super().__init__())
     '''
-    def __init__(self):
+    def __init__(self, function_dict):
         self.__status = "NOT STARTED"
         self.__RUNNING = True
         self.__lock_status = threading.Lock()
@@ -24,6 +24,7 @@ class threadWrapper():
         # this is how we keep track of requsts
         self.__requet_num = 0
         self.__completed_requestes = {}
+        self.__function_dict = function_dict #this dictionary contatians the list of function from the partent class that can be run in this context
 
     def get_status(self):
         # pylint: disable=missing-function-docstring
@@ -100,8 +101,8 @@ class threadWrapper():
             request = self.get_next_request()
             # check to see if there is a request
             if(request != None):
-                if(len(request[1]) > 0): request[3] = eval("self." + request[0])(request[1])
-                else : request[3] = eval("self." + request[0])()
+                if(len(request[1]) > 0): request[3] = self.__function_dict[request[0]](request[1])
+                else : request[3] = self.__function_dict[request[0]]()
                 self.complet_request(request[4], request[3])
             else :
                 sleep = True      
