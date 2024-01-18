@@ -5,6 +5,10 @@ import threading
 import datetime
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=import-error
 
+#import DTO for comminicating internally
+from DTOs.logger_dto import logger_dto
+from DTOs.print_message_dto import print_message_dto
+
 
 class taskHandler():
     '''
@@ -45,11 +49,13 @@ class taskHandler():
         '''
         if args is None:
             self.__threads[taskID] = (threading.Thread(target=runFunction), wrapper)
-            self.__coms.print_message(f"Thread {taskID} created with no args. ")
+            dto = print_message_dto(f"Thread {taskID} created with no args. ")
+            self.__coms.print_message(dto)
             self.__logger.send_log(f"Thread {taskID} created with no args. ")
         else :
             self.__threads[taskID] = (threading.Thread(target=runFunction, args=args), wrapper)
-            self.__coms.print_message(f"Thread {taskID} created with args {args}. ")
+            dto = print_message_dto(f"Thread {taskID} created with args {args}. ")
+            self.__coms.print_message(dto)
             self.__logger.send_log(f"Thread {taskID} created with args {args}. ")
     def start(self, check=True, thread = ''):
         '''
@@ -59,7 +65,8 @@ class taskHandler():
             for thread in self.__threads: #pylint: disable=C0206
                 if self.__threads[thread][1].get_status() == "NOT STARTED":
                     self.__threads[thread][0].start() #start thread
-                    self.__coms.print_message(f"Thread {thread} started. ")
+                    dto = print_message_dto(f"Thread {thread} started. ")
+                    self.__coms.print_message(dto)
                     self.__logger.send_log(f"Thread {thread} started. ")
         else :
             self.__threads[thread][0].start()
@@ -70,7 +77,8 @@ class taskHandler():
         reports = [] # we need to pass a list of reports so the all get displayed at the same time. 
         for thread in self.__threads: #pylint: disable=C0206
             if self.__threads[thread][0].is_alive():
-                reports.append((thread, "Running", f"[{datetime.datetime.now()}]"))
+                dto = logger_dto(time=datetime.datetime.now(), message="Is Running")
+                reports.append((thread, dto, "Running"))
                 self.__logger.send_log(f"Thread {thread} is Running. ")
             else :
                 if self.__threads[thread][1].get_status() == "Complete":
@@ -83,11 +91,13 @@ class taskHandler():
                     except : # pylint: disable=w0702
                         self.__completed_taskes[thread] = datetime.datetime.now()
                         doneTime = self.__completed_taskes[thread]
-
-                    reports.append((thread, "Complete", f"[{doneTime}]"))
+                    
+                    dto = logger_dto(time=doneTime, message="Complete")
+                    reports.append((thread, dto, 'Complete'))
                     self.__logger.send_log(f"Thread {thread} is Complete. ")
                 else :
-                    reports.append((thread, "Error", f"[{datetime.datetime.now()}]"))
+                    dto = logger_dto(time=datetime.datetime.now(), message="Error Occured")
+                    reports.append((thread, dto, 'Error'))
                     self.__logger.send_log(f"Thread {thread} had an Error. ")
         self.__coms.report_thread(reports)
     def kill_tasks(self):
