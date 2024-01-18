@@ -9,7 +9,6 @@ from logging_system_display_python_api.logger import loggerCustom # pylint: disa
 from DTOs.logger_dto import logger_dto
 from DTOs.print_message_dto import print_message_dto
 
-
 class taskHandler():
     '''
         This class is what collects all the task and then runs them. It also checks on the status of every class. 
