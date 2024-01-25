@@ -153,7 +153,7 @@ class taskHandler():
         return temp
     def add_thread_request_func(self, args):
         '''
-            This function is so that other class who dont know about the thread handler can send a request to start a new thread. (The gui display uses theis.)
+            This function is so that other class who dont know about the thread handler can send a request to start a new thread. (The gui display uses this.)
 
             ARGS:
                 args[0] : function to run
