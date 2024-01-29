@@ -121,13 +121,16 @@ class taskHandler():
                     EX: ['funcName']
         '''
         with self.__request_lock:
-            if len(request) > 0:
-                if self.__name == thread: temp = self.__func_map[request[0]](request[1:])
-                else : temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
-            else :
-                if self.__name == thread: temp = self.__func_map[request[0]]()
-                else : temp = self.__threads[thread][1].make_request(request[0])
-        return temp   
+            try :
+                if len(request) > 0:
+                    if self.__name == thread: temp = self.__func_map[request[0]](request[1:])
+                    else : temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
+                else :
+                    if self.__name == thread: temp = self.__func_map[request[0]]()
+                    else : temp = self.__threads[thread][1].make_request(request[0])
+            except Exception as e:
+                temp = f"Error in calling thread {request[0]}: {e}"
+        return temp 
     def pass_return(self, thread, requestNum):
         '''
             This function is ment to pass the return values form a thread to another thread, without the threads having explicit knowlage of eachother. 
@@ -136,7 +139,10 @@ class taskHandler():
                 requestNum: the number that you got from passReequests, this is basically your ticket to map info back and forth.
         '''
         with self.__request_lock:
-            temp = self.__threads[thread][1].get_request(requestNum)
+            try : 
+                temp = self.__threads[thread][1].get_request(requestNum)
+            except Exception as e: 
+                temp = f"Error in calling thread {thread}: {e}"
         return temp 
     def check_request(self, thread, requestNum):
         '''
@@ -149,7 +155,10 @@ class taskHandler():
             output:
         '''
         with self.__request_lock:
-            temp = self.__threads[thread][1].check_request(requestNum)
+            try :
+                temp = self.__threads[thread][1].check_request(requestNum)
+            except Exception as e: 
+                temp = f"Error in calling thread {thread}: {e}"
         return temp
     def add_thread_request_func(self, args):
         '''
