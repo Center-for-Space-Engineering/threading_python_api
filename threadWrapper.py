@@ -40,16 +40,19 @@ class threadWrapper():
         with self.__lock_running:
             return self.__RUNNING
     def kill_Task(self):
+        '''
+            Shut down the task when this is called. 
+        '''
         with self.__lock_running:
             self.__RUNNING = False
     
-    def make_request(self, type, args=[]):
+    def make_request(self, type_request, args):
         '''
             Make a request to to the THREAD, it then returns the task number that you can pass to get Request to see if your task has been completed. 
         '''
         with self.__request_lock:
             self.__requet_num += 1
-            self.__request.append([type, args, False, None, self.__requet_num])
+            self.__request.append([type_request, args, False, None, self.__requet_num])
             temp = self.__requet_num # set a local var to the reqest num so we can relase the mutex
         return temp
     
@@ -65,9 +68,10 @@ class threadWrapper():
         '''
         with self.__request_lock:
             try :
+                # pylint: disable=W0104
                 self.__completed_requestes[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
                 return True
-            except :
+            except : # pylint: disable=W0702
                 return False 
     def get_request(self, requestNum):
         '''
@@ -78,12 +82,12 @@ class threadWrapper():
                 temp = self.__completed_requestes[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
                 del self.__completed_requestes[requestNum] # delete the completed task to save space
                 return temp
-            except :
+            except : # pylint: disable=W0702
                 return None 
     def get_next_request(self):
         # pylint: disable=missing-function-docstring
         with self.__request_lock: 
-            if(len(self.__request) > 0):
+            if len(self.__request) > 0:
                 temp = self.__request.pop(0) # set a local var to the reqest num so we can relase the mutex
             else :
                 temp = None
@@ -97,15 +101,17 @@ class threadWrapper():
         '''
         self.set_status("Running")
         sleep = False
-        while(self.get_running()):
+        while self.get_running():
             request = self.get_next_request()
             # check to see if there is a request
-            if(request != None):
-                if(len(request[1]) > 0): request[3] = self.__function_dict[request[0]](request[1])
-                else : request[3] = self.__function_dict[request[0]]()
+            if request is not None:
+                if len(request[1]) > 0: 
+                    request[3] = self.__function_dict[request[0]](request[1])
+                else : 
+                    request[3] = self.__function_dict[request[0]]()
                 self.complet_request(request[4], request[3])
             else :
                 sleep = True      
-            if(sleep): #sleep if no task are needed. 
+            if sleep: #sleep if no task are needed. 
                 time.sleep(0.1)
                 sleep = False  

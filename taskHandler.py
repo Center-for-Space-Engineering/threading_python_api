@@ -6,8 +6,8 @@ import datetime
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=import-error
 
 #import DTO for comminicating internally
-from DTOs.logger_dto import logger_dto
-from DTOs.print_message_dto import print_message_dto
+from DTOs.logger_dto import logger_dto # pylint: disable=import-error
+from DTOs.print_message_dto import print_message_dto # pylint: disable=import-error
 
 class taskHandler():
     '''
@@ -61,12 +61,12 @@ class taskHandler():
             starts all the threads in the threads dictinary
         '''
         if check :
-            for thread in self.__threads: #pylint: disable=C0206
-                if self.__threads[thread][1].get_status() == "NOT STARTED":
-                    self.__threads[thread][0].start() #start thread
-                    dto = print_message_dto(f"Thread {thread} started. ")
+            for thread_stored in self.__threads: #pylint: disable=C0206
+                if self.__threads[thread_stored][1].get_status() == "NOT STARTED":
+                    self.__threads[thread_stored][0].start() #start thread
+                    dto = print_message_dto(f"Thread {thread_stored} started. ")
                     self.__coms.print_message(dto)
-                    self.__logger.send_log(f"Thread {thread} started. ")
+                    self.__logger.send_log(f"Thread {thread_stored} started. ")
         else :
             self.__threads[thread][0].start()
     def get_thread_status(self):
@@ -123,12 +123,16 @@ class taskHandler():
         with self.__request_lock:
             try :
                 if len(request) > 0:
-                    if self.__name == thread: temp = self.__func_map[request[0]](request[1:])
-                    else : temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
+                    if self.__name == thread:
+                        temp = self.__func_map[request[0]](request[1:])
+                    else : 
+                        temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
                 else :
-                    if self.__name == thread: temp = self.__func_map[request[0]]()
-                    else : temp = self.__threads[thread][1].make_request(request[0])
-            except Exception as e:
+                    if self.__name == thread: 
+                        temp = self.__func_map[request[0]]()
+                    else : 
+                        temp = self.__threads[thread][1].make_request(request[0])
+            except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {request[0]}: {e}"
         return temp 
     def pass_return(self, thread, requestNum):
@@ -141,7 +145,7 @@ class taskHandler():
         with self.__request_lock:
             try : 
                 temp = self.__threads[thread][1].get_request(requestNum)
-            except Exception as e: 
+            except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {thread}: {e}"
         return temp 
     def check_request(self, thread, requestNum):
@@ -157,7 +161,7 @@ class taskHandler():
         with self.__request_lock:
             try :
                 temp = self.__threads[thread][1].check_request(requestNum)
-            except Exception as e: 
+            except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {thread}: {e}"
         return temp
     def add_thread_request_func(self, args):
@@ -173,8 +177,10 @@ class taskHandler():
         runFunction = args[0]
         taskID = args[1]
         wrapper = args[2] 
-        if len(args) > 3 : thread_args = args[3]
-        else : thread_args = None
+        if len(args) > 3 : 
+            thread_args = args[3]
+        else : 
+            thread_args = None
 
         #add the thread 
         self.add_thread(runFunction, taskID, wrapper, args = thread_args)      
