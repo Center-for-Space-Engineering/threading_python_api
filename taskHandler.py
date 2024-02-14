@@ -34,7 +34,7 @@ class taskHandler():
         self.__coms = coms 
         self.__logger = loggerCustom("logs/taskHandler.txt")
         self.add_thread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
-        self.__completed_taskes = {}
+        self.__completed_tasks = {}
         self.__request_lock = threading.Lock()
         self.__name = task_handler_name
         self.__func_map = {
@@ -82,14 +82,12 @@ class taskHandler():
             else :
                 if self.__threads[thread][1].get_status() == "Complete":
                     try:
-                        doneTime = self.__completed_taskes[thread]
-                        # print(f"{datetime.datetime.now().timestamp()} {doneTime.timestamp()}")
+                        doneTime = self.__completed_tasks[thread]
                         if (int (datetime.datetime.now().timestamp()) - int (doneTime.timestamp())) > 5 : # five second time out
-                            del self.__completed_taskes[thread]
-                            print(f"{self.__completed_taskes[thread]}")
+                            del self.__completed_tasks[thread]
                     except : # pylint: disable=w0702
-                        self.__completed_taskes[thread] = datetime.datetime.now()
-                        doneTime = self.__completed_taskes[thread]
+                        self.__completed_tasks[thread] = datetime.datetime.now()
+                        doneTime = self.__completed_tasks[thread]
                     
                     dto = logger_dto(time=doneTime, message="Complete")
                     reports.append((thread, dto, 'Complete'))
