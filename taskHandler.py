@@ -33,6 +33,7 @@ class taskHandler():
         self.__threads = {}
         self.__coms = coms 
         self.__logger = loggerCustom("logs/taskHandler.txt")
+        self.__thread_dict_lock = threading.Lock()
         self.add_thread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
         self.__completed_tasks = {}
         self.__request_lock = threading.Lock()
@@ -46,24 +47,30 @@ class taskHandler():
             It then starts a thread and adds it to the dictionary of threads. 
             In side the dictionary it holds the threads. 
         '''
+        with self.__thread_dict_lock:
+            copy_thread_dict = self.__threads.copy()
         if args is None:
-            self.__threads[taskID] = (threading.Thread(target=runFunction), wrapper)
+            copy_thread_dict[taskID] = (threading.Thread(target=runFunction), wrapper)
             dto = print_message_dto(f"Thread {taskID} created with no args. ")
             self.__coms.print_message(dto)
             self.__logger.send_log(f"Thread {taskID} created with no args. ")
         else :
-            self.__threads[taskID] = (threading.Thread(target=runFunction, args=args), wrapper)
+            copy_thread_dict[taskID] = (threading.Thread(target=runFunction, args=args), wrapper)
             dto = print_message_dto(f"Thread {taskID} created with args {args}. ")
             self.__coms.print_message(dto)
             self.__logger.send_log(f"Thread {taskID} created with args {args}. ")
+        with self.__thread_dict_lock:
+            self.__threads = copy_thread_dict.copy()
     def start(self, check=True, thread = ''):
         '''
             starts all the threads in the threads dictionary
         '''
+        with self.__thread_dict_lock:
+            copy_thread_dict = self.__threads.copy()
         if check :
-            for thread_stored in self.__threads: #pylint: disable=C0206
-                if self.__threads[thread_stored][1].get_status() == "NOT STARTED":
-                    self.__threads[thread_stored][0].start() #start thread
+            for thread_stored in copy_thread_dict: #pylint: disable=C0206
+                if copy_thread_dict[thread_stored][1].get_status() == "NOT STARTED":
+                    copy_thread_dict[thread_stored][0].start() #start thread
                     dto = print_message_dto(f"Thread {thread_stored} started. ")
                     self.__coms.print_message(dto)
                     self.__logger.send_log(f"Thread {thread_stored} started. ")
@@ -73,14 +80,16 @@ class taskHandler():
         '''
             Gets the thread status, then sends message to the `Message handler class`
         '''
+        with self.__thread_dict_lock:
+            temp_thread_dict = self.__threads.copy()
         reports = [] # we need to pass a list of reports so the all get displayed at the same time. 
-        for thread in self.__threads: #pylint: disable=C0206
-            if self.__threads[thread][0].is_alive():
+        for thread in temp_thread_dict: #pylint: disable=C0206
+            if temp_thread_dict[thread][0].is_alive():
                 dto = logger_dto(time=datetime.datetime.now(), message="Is Running")
                 reports.append((thread, dto, "Running"))
                 self.__logger.send_log(f"Thread {thread} is Running. ")
             else :
-                if self.__threads[thread][1].get_status() == "Complete":
+                if temp_thread_dict[thread][1].get_status() == "Complete":
                     try:
                         doneTime = self.__completed_tasks[thread]
                         # print(f"{datetime.datetime.now().timestamp()} {doneTime.timestamp()}")
@@ -102,9 +111,12 @@ class taskHandler():
         '''
             This function is set running to false. It is up to the user to makes sure the task stops running after that. 
         '''
-        for thread in self.__threads: #pylint: disable=C0206
-            self.__threads[thread][1].kill_Task() 
-            self.__logger.send_log(f"Thread {thread} has been killed. ")
+        with self.__thread_dict_lock:
+            temp_thread_dict = self.__threads.copy()
+        for thread in temp_thread_dict: #pylint: disable=C0206
+            temp_thread_dict[thread][1].kill_Task() 
+            dto = logger_dto(message = f"Thread {thread} has been command to be killed. ")
+            self.__logger.send_log(dto)
     def pass_request(self, thread, request):
         '''
             This function is meant to pass information to other threads with out the two threads knowing about each other.
@@ -119,18 +131,20 @@ class taskHandler():
                 NOTE: even if  you are only passing one thing it needs to be a list! 
                     EX: ['funcName']
         '''
+        with self.__thread_dict_lock:
+            copy_thread_dict = self.__threads.copy()
         with self.__request_lock:
             try :
                 if len(request) > 0:
                     if self.__name == thread:
                         temp = self.__func_map[request[0]](request[1:])
                     else : 
-                        temp = self.__threads[thread][1].make_request(request[0], args = request[1:])
+                        temp = copy_thread_dict[thread][1].make_request(request[0], args = request[1:])
                 else :
                     if self.__name == thread: 
                         temp = self.__func_map[request[0]]()
                     else : 
-                        temp = self.__threads[thread][1].make_request(request[0])
+                        temp = copy_thread_dict[thread][1].make_request(request[0])
             except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {request[0]}: {e}"
         return temp 
@@ -141,9 +155,11 @@ class taskHandler():
                 thread: The name of the thread as you see it on the gui, or as it is set in main.py
                 requestNum: the number that you got from passRequests, this is basically your ticket to map info back and forth.
         '''
+        with self.__thread_dict_lock:
+            copy_thread_dict = self.__threads.copy()
         with self.__request_lock:
             try : 
-                temp = self.__threads[thread][1].get_request(requestNum)
+                temp = copy_thread_dict[thread][1].get_request(requestNum)
             except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {thread}: {e}"
         return temp 
@@ -157,9 +173,11 @@ class taskHandler():
                 requestNum
             output:
         '''
+        with self.__thread_dict_lock:
+            copy_thread_dict = self.__threads.copy()
         with self.__request_lock:
             try :
-                temp = self.__threads[thread][1].check_request(requestNum)
+                temp = copy_thread_dict[thread][1].check_request(requestNum)
             except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {thread}: {e}"
         return temp
