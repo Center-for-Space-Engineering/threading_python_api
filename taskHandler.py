@@ -5,7 +5,7 @@ import threading
 import datetime
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=import-error
 
-#import DTO for comminicating internally
+#import DTO for communicating internally
 from DTOs.logger_dto import logger_dto # pylint: disable=import-error
 from DTOs.print_message_dto import print_message_dto # pylint: disable=import-error
 
@@ -14,8 +14,8 @@ class taskHandler():
         This class is what collects all the task and then runs them. It also checks on the status of every class. 
         The status is set by using the following command: super().setStatus("Running"). When ever a task is created it 
         is given the status of "NOT STARTED". When it is finished it is given the status of "Complete". If the task every 
-        crashes it should return a status of "Error". Remeber that the status of "Running" and "Complete" should be set 
-        by the user. With the one excetion of "Running" when the users just uses the prebuilt run function implemented in 
+        crashes it should return a status of "Error". Remember that the status of "Running" and "Complete" should be set 
+        by the user. With the one exception of "Running" when the users just uses the prebuilt run function implemented in 
         `threadWrapper`.
 
         The general function of this class is that it implements a threading api as follows. First a thread is added use 
@@ -25,7 +25,7 @@ class taskHandler():
 
         For messaging there are the `pass_request` and `pass_return` functions. These functions are implemented by the 
         `messageHandler` in the `logging_system_display_python_api`. However if the user  wish to not use that api, or 
-        implement theself here is how they work. The `pass_request` takes in a thread name and then access that thread
+        implement themselves here is how they work. The `pass_request` takes in a thread name and then access that thread
         and pass the function name and args to it. The `pass_return` return then checks to see if the task has completed 
         the request and returns None or the value from the task.
     '''
@@ -34,7 +34,7 @@ class taskHandler():
         self.__coms = coms 
         self.__logger = loggerCustom("logs/taskHandler.txt")
         self.add_thread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
-        self.__completed_taskes = {}
+        self.__completed_tasks = {}
         self.__request_lock = threading.Lock()
         self.__name = task_handler_name
         self.__func_map = {
@@ -43,7 +43,7 @@ class taskHandler():
     def add_thread(self, runFunction, taskID, wrapper, args = None):
         ''''
             This function takes a taskID (string) and a run function (function to start the thread)
-            It then starts a theard and adds it to the dictionary of threads. 
+            It then starts a thread and adds it to the dictionary of threads. 
             In side the dictionary it holds the threads. 
         '''
         if args is None:
@@ -58,7 +58,7 @@ class taskHandler():
             self.__logger.send_log(f"Thread {taskID} created with args {args}. ")
     def start(self, check=True, thread = ''):
         '''
-            starts all the threads in the threads dictinary
+            starts all the threads in the threads dictionary
         '''
         if check :
             for thread_stored in self.__threads: #pylint: disable=C0206
@@ -82,20 +82,20 @@ class taskHandler():
             else :
                 if self.__threads[thread][1].get_status() == "Complete":
                     try:
-                        doneTime = self.__completed_taskes[thread]
+                        doneTime = self.__completed_tasks[thread]
                         # print(f"{datetime.datetime.now().timestamp()} {doneTime.timestamp()}")
                         if (int (datetime.datetime.now().timestamp()) - int (doneTime.timestamp())) > 5 : # five second time out
-                            del self.__completed_taskes[thread]
-                            print(f"{self.__completed_taskes[thread]}")
+                            del self.__completed_tasks[thread]
+                            print(f"{self.__completed_tasks[thread]}")
                     except : # pylint: disable=w0702
-                        self.__completed_taskes[thread] = datetime.datetime.now()
-                        doneTime = self.__completed_taskes[thread]
+                        self.__completed_tasks[thread] = datetime.datetime.now()
+                        doneTime = self.__completed_tasks[thread]
                     
                     dto = logger_dto(time=doneTime, message="Complete")
                     reports.append((thread, dto, 'Complete'))
                     self.__logger.send_log(f"Thread {thread} is Complete. ")
                 else :
-                    dto = logger_dto(time=datetime.datetime.now(), message="Error Occured")
+                    dto = logger_dto(time=datetime.datetime.now(), message="Error Occurred")
                     reports.append((thread, dto, 'Error'))
                     self.__logger.send_log(f"Thread {thread} had an Error. ")
         self.__coms.report_thread(reports)
@@ -108,9 +108,9 @@ class taskHandler():
             self.__logger.send_log(f"Thread {thread} has been killed. ")
     def pass_request(self, thread, request):
         '''
-            This function is ment to pass information to other threads with out the two threads knowing about each other.
-            Bassically the requester say I want to talk to thread x and here is my request. This funct then pass on that requeset. 
-            NOTE: threads go by the same name that you see on the display, NOT their class name. This is ment to be easier for the user,
+            This function is meant to pass information to other threads with out the two threads knowing about each other.
+            Basically the requester say I want to talk to thread x and here is my request. This func then pass on that request. 
+            NOTE: threads go by the same name that you see on the display, NOT their class name. This is meant to be easier for the user,
             as they could run the code and see the name they need to send a request to.
 
             ARGS: 
@@ -137,10 +137,10 @@ class taskHandler():
         return temp 
     def pass_return(self, thread, requestNum):
         '''
-            This function is ment to pass the return values form a thread to another thread, without the threads having explicit knowlage of eachother. 
+            This function is meant to pass the return values form a thread to another thread, without the threads having explicit knowledge of each other. 
             ARGS:
                 thread: The name of the thread as you see it on the gui, or as it is set in main.py
-                requestNum: the number that you got from passReequests, this is basically your ticket to map info back and forth.
+                requestNum: the number that you got from passRequests, this is basically your ticket to map info back and forth.
         '''
         with self.__request_lock:
             try : 
@@ -150,8 +150,8 @@ class taskHandler():
         return temp 
     def check_request(self, thread, requestNum):
         '''
-            This function is for the small set of case where it is nessary to check and see if the request has completed as
-            aposed to checking the return val. 
+            This function is for the small set of case where it is necessary to check and see if the request has completed as
+            apposed to checking the return val. 
 
             Input:
                 thread
@@ -171,7 +171,7 @@ class taskHandler():
             ARGS:
                 args[0] : function to run
                 args[1] : the name you want the thread to have
-                args[2] : the class object of the thread. (Must inharrite form the threadWrapper class)
+                args[2] : the class object of the thread. (Must inherit form the threadWrapper class)
                 args[3] : any args to be passed into the thread. 
         '''
         runFunction = args[0]

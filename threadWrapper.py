@@ -1,5 +1,5 @@
 '''
-    This class is ment to be inherited by other classes. Any class that wants to use 
+    This class is built to be inherited by other classes. Any class that wants to use 
     `taskHandler` needs to use this class.
 '''
 
@@ -10,8 +10,8 @@ class threadWrapper():
     '''
         This class is used as a way to make any other class meet the min requirements to work with 
         taskHandler. The user can override any of the function if they wish. Also long as the base
-        fucntionality is implemented. In addition when you inherite this class, YOU MUST call the
-        construtor. (super().__init__())
+        functionality is implemented. In addition when you inherit this class, YOU MUST call the
+        constructor. (super().__init__())
     '''
     def __init__(self, function_dict):
         self.__status = "NOT STARTED"
@@ -21,10 +21,10 @@ class threadWrapper():
         self.__request = []
         # this is how we handle task in this class, the format is a list [func name, list of args, bool to mark when its been served, returned time, request num]
         self.__request_lock = threading.Lock()
-        # this is how we keep track of requsts
-        self.__requet_num = 0
-        self.__completed_requestes = {}
-        self.__function_dict = function_dict #this dictionary contatians the list of function from the partent class that can be run in this context
+        # this is how we keep track of requests
+        self.__request_num = 0
+        self.__completed_requests = {}
+        self.__function_dict = function_dict #this dictionary contains the list of function from the parent class that can be run in this context
 
     def get_status(self):
         # pylint: disable=missing-function-docstring
@@ -46,20 +46,20 @@ class threadWrapper():
         with self.__lock_running:
             self.__RUNNING = False
     
-    def make_request(self, type_request, args = []):
+    def make_request(self, type_request, args = list):
         '''
             Make a request to to the THREAD, it then returns the task number that you can pass to get Request to see if your task has been completed. 
         '''
         with self.__request_lock:
-            self.__requet_num += 1
-            self.__request.append([type_request, args, False, None, self.__requet_num])
-            temp = self.__requet_num # set a local var to the reqest num so we can relase the mutex
+            self.__request_num += 1
+            self.__request.append([type_request, args, False, None, self.__request_num])
+            temp = self.__request_num # set a local var to the request num so we can release the mutex
         return temp
     
     def check_request(self, requestNum):
         '''
-            This function is for the small set of case where it is nessary to check and see if the request has completed as
-            aposed to checking the return val. 
+            This function is for the small set of case where it is necessary to check and see if the request has completed as
+            apposed to checking the return val. 
 
             Input:
                 requestNum
@@ -69,7 +69,7 @@ class threadWrapper():
         with self.__request_lock:
             try :
                 # pylint: disable=W0104
-                self.__completed_requestes[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
+                self.__completed_requests[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
                 return True
             except : # pylint: disable=W0702
                 return False 
@@ -79,8 +79,8 @@ class threadWrapper():
         '''
         with self.__request_lock:
             try :
-                temp = self.__completed_requestes[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
-                del self.__completed_requestes[requestNum] # delete the completed task to save space
+                temp = self.__completed_requests[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
+                del self.__completed_requests[requestNum] # delete the completed task to save space
                 return temp
             except : # pylint: disable=W0702
                 return None 
@@ -88,13 +88,13 @@ class threadWrapper():
         # pylint: disable=missing-function-docstring
         with self.__request_lock: 
             if len(self.__request) > 0:
-                temp = self.__request.pop(0) # set a local var to the reqest num so we can relase the mutex
+                temp = self.__request.pop(0) # set a local var to the request num so we can release the mutex
             else :
                 temp = None
         return temp
-    def complet_request(self, key, returnVal):
+    def complete_request(self, key, returnVal):
         # pylint: disable=missing-function-docstring
-        self.__completed_requestes[key] = returnVal
+        self.__completed_requests[key] = returnVal
     def run(self):
         '''
             This function is for multi threading purpose. It works by using a FIFO queue to process Task assigned to it by other threads.
@@ -109,7 +109,7 @@ class threadWrapper():
                     request[3] = self.__function_dict[request[0]](request[1])
                 else : 
                     request[3] = self.__function_dict[request[0]]()
-                self.complet_request(request[4], request[3])
+                self.complete_request(request[4], request[3])
             else :
                 sleep = True      
             if sleep: #sleep if no task are needed. 
