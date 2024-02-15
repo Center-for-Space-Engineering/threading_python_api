@@ -115,7 +115,7 @@ class taskHandler():
             temp_thread_dict = self.__threads.copy()
         for thread in temp_thread_dict: #pylint: disable=C0206
             temp_thread_dict[thread][1].kill_Task() 
-            dto = logger_dto(message = f"Thread {thread} has been command to be killed. ")
+            dto = logger_dto(message = f"Thread {thread} has been command to be killed. ", time=str(datetime.now()))
             self.__logger.send_log(dto)
     def pass_request(self, thread, request):
         '''
