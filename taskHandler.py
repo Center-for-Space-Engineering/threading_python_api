@@ -86,7 +86,6 @@ class taskHandler():
                         # print(f"{datetime.datetime.now().timestamp()} {doneTime.timestamp()}")
                         if (int (datetime.datetime.now().timestamp()) - int (doneTime.timestamp())) > 5 : # five second time out
                             del self.__completed_tasks[thread]
-                            print(f"{self.__completed_tasks[thread]}")
                     except : # pylint: disable=w0702
                         self.__completed_tasks[thread] = datetime.datetime.now()
                         doneTime = self.__completed_tasks[thread]
