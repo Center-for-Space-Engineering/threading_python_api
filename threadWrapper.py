@@ -12,8 +12,12 @@ class threadWrapper():
         taskHandler. The user can override any of the function if they wish. Also long as the base
         functionality is implemented. In addition when you inherit this class, YOU MUST call the
         constructor. (super().__init__())
+
+        ARGS:
+            function_dict : a dictionary, that has the name the system will call to call a function, then the value is the actual function to call. 
+            event_dict: a dictionary the key is the event name, and the value is the function to call when the event happens. 
     '''
-    def __init__(self, function_dict):
+    def __init__(self, function_dict:dict, event_dict:dict = None):
         self.__status = "NOT STARTED"
         self.__RUNNING = True
         self.__lock_status = threading.Lock()
@@ -26,6 +30,12 @@ class threadWrapper():
         self.__completed_requests = {}
         self.__function_dict = function_dict #this dictionary contains the list of function from the parent class that can be run in this context
 
+
+        ###### Set up events ######
+        self.__event_dict = {}
+        if event_dict is not None:
+            for event in event_dict:
+                self.__event_dict[event] = [threading.Event(), event_dict[event]] # key event name, value [event object (threading.Event()), function to call.]
     def get_status(self):
         # pylint: disable=missing-function-docstring
         with self.__lock_status:
@@ -102,6 +112,13 @@ class threadWrapper():
         self.set_status("Running")
         sleep = False
         while self.get_running():
+            ##### Check Events #####
+            for event in self.__event_dict: #check every event that we know about
+                if self.__event_dict[event][0].is_set():
+                    self.__event_dict[event][1]() #call the event function
+                    self.clear_event(event=event) #clear the event
+
+            #### Handle request made to this class #####
             request = self.get_next_request()
             # check to see if there is a request
             if request is not None:
@@ -111,7 +128,22 @@ class threadWrapper():
                     request[3] = self.__function_dict[request[0]]()
                 self.complete_request(request[4], request[3])
             else :
-                sleep = True      
-            if sleep: #sleep if no task are needed. 
+                sleep = True
+
+            ##### sleep if no task are needed. #####
+            if sleep: # This lowers over all system usage. 
                 time.sleep(0.1)
-                sleep = False  
+                sleep = False 
+    def set_event(self, event):
+        '''
+            this function lets the class know that an event has happened
+        '''
+        self.__event_dict[event][0].set()
+
+    def clear_event(self, event):
+        '''
+            Clear the event.
+        '''
+        self.__event_dict[event][0].clear()
+
+
