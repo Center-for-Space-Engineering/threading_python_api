@@ -115,7 +115,7 @@ class threadWrapper():
             ##### Check Events #####
             for event in self.__event_dict: #check every event that we know about
                 if self.__event_dict[event][0].is_set():
-                    self.__event_dict[event][1]() #call the event function
+                    self.__event_dict[event][1](event) #call the event function
                     self.clear_event(event=event) #clear the event
 
             #### Handle request made to this class #####
