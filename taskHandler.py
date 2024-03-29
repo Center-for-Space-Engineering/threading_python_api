@@ -6,8 +6,9 @@ import datetime
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=import-error
 
 #import DTO for communicating internally
-from DTOs.logger_dto import logger_dto # pylint: disable=import-error
-from DTOs.print_message_dto import print_message_dto # pylint: disable=import-error
+from logging_system_display_python_api.DTOs.logger_dto import logger_dto # pylint: disable=import-error
+from logging_system_display_python_api.DTOs.print_message_dto import print_message_dto # pylint: disable=e0401
+
 
 class taskHandler():
     '''
