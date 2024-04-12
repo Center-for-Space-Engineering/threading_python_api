@@ -56,7 +56,7 @@ class threadWrapper():
         with self.__lock_running:
             self.__RUNNING = False
     
-    def make_request(self, type_request, args = []):
+    def make_request(self, type_request, args = []): #pylint: disable=w0102
         '''
             Make a request to to the THREAD, it then returns the task number that you can pass to get Request to see if your task has been completed. 
         '''
@@ -113,7 +113,8 @@ class threadWrapper():
         sleep = False
         while self.get_running():
             ##### Check Events #####
-            for event in self.__event_dict: #check every event that we know about
+            #check every event that we know about
+            for event in self.__event_dict: # pylint: disable=C0206
                 if self.__event_dict[event][0].is_set():
                     self.__event_dict[event][1](event) #call the event function
                     self.clear_event(event=event) #clear the event
@@ -145,5 +146,3 @@ class threadWrapper():
             Clear the event.
         '''
         self.__event_dict[event][0].clear()
-
-

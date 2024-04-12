@@ -48,6 +48,7 @@ class taskHandler():
             It then starts a thread and adds it to the dictionary of threads. 
             In side the dictionary it holds the threads. 
         '''
+
         with self.__thread_dict_lock:
             copy_thread_dict = self.__threads.copy()
         if args is None:
@@ -116,8 +117,7 @@ class taskHandler():
             temp_thread_dict = self.__threads.copy()
         for thread in temp_thread_dict: #pylint: disable=C0206
             temp_thread_dict[thread][1].kill_Task() 
-            dto = logger_dto(message = f"Thread {thread} has been command to be killed. ", time=str(datetime.now()))
-            self.__logger.send_log(dto)
+            self.__logger.send_log(f"Thread {thread} has been command to be killed. ")
     def pass_request(self, thread, request):
         '''
             This function is meant to pass information to other threads with out the two threads knowing about each other.
