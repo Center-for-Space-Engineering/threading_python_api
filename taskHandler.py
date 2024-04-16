@@ -2,6 +2,7 @@
     This module handles all the threads and running them. 
 '''
 import threading
+import time
 import datetime
 from logging_system_display_python_api.logger import loggerCustom # pylint: disable=import-error
 
@@ -73,6 +74,7 @@ class taskHandler():
             for thread_stored in copy_thread_dict: #pylint: disable=C0206
                 if copy_thread_dict[thread_stored][1].get_status() == "NOT STARTED":
                     copy_thread_dict[thread_stored][0].start() #start thread
+                    copy_thread_dict[thread_stored][1].set_status('STARTED')
                     dto = print_message_dto(f"Thread {thread_stored} started. ")
                     self.__coms.print_message(dto)
                     self.__logger.send_log(f"Thread {thread_stored} started. ")
@@ -116,7 +118,10 @@ class taskHandler():
         with self.__thread_dict_lock:
             temp_thread_dict = self.__threads.copy()
         for thread in temp_thread_dict: #pylint: disable=C0206
-            temp_thread_dict[thread][1].kill_Task() 
+            temp_thread_dict[thread][1].kill_Task()
+            while temp_thread_dict[thread][0].is_alive():
+                print(f" Killing thread: {thread} If the thread doesn't shut down make sure it is not a zombie thread. A.K.A the thread had an earlier error, and then kept running but is no longer responding to commands from the system. ")
+                time.sleep(1)
             self.__logger.send_log(f"Thread {thread} has been command to be killed. ")
     def pass_request(self, thread, request):
         '''

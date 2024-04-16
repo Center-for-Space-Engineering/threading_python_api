@@ -134,7 +134,7 @@ class threadWrapper():
             ##### sleep if no task are needed. #####
             if sleep: # This lowers over all system usage. 
                 time.sleep(0.1)
-                sleep = False 
+                sleep = False
     def set_event(self, event):
         '''
             this function lets the class know that an event has happened
