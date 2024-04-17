@@ -30,7 +30,6 @@ class threadWrapper():
         self.__completed_requests = {}
         self.__function_dict = function_dict #this dictionary contains the list of function from the parent class that can be run in this context
 
-
         ###### Set up events ######
         self.__event_dict = {}
         if event_dict is not None:
