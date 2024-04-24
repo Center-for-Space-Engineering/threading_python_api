@@ -42,7 +42,7 @@ class taskHandler():
         self.__func_map = {
             'add_thread_request_func' : self.add_thread_request_func 
         }
-    def add_thread(self, runFunction, taskID, wrapper, args = None):
+    def add_thread(self, runFunction, taskID, wrapper, args = None, report = True):
         ''''
             This function takes a taskID (string) and a run function (function to start the thread)
             It then starts a thread and adds it to the dictionary of threads. 
@@ -52,15 +52,15 @@ class taskHandler():
         with self.__thread_dict_lock:
             copy_thread_dict = self.__threads.copy()
         if args is None:
-            copy_thread_dict[taskID] = (threading.Thread(target=runFunction), wrapper)
+            copy_thread_dict[taskID] = (threading.Thread(target=runFunction), wrapper, report)
             dto = print_message_dto(f"Thread {taskID} created with no args. ")
             self.__coms.print_message(dto)
             self.__logger.send_log(f"Thread {taskID} created with no args. ")
         else :
-            copy_thread_dict[taskID] = (threading.Thread(target=runFunction, args=args), wrapper)
-            dto = print_message_dto(f"Thread {taskID} created with args {args}. ")
+            copy_thread_dict[taskID] = (threading.Thread(target=runFunction, args=args), wrapper, report)
+            dto = print_message_dto(f"Thread {taskID} created. ")
             self.__coms.print_message(dto)
-            self.__logger.send_log(f"Thread {taskID} created with args {args}. ")
+            self.__logger.send_log(f"Thread {taskID} created. ")
         with self.__thread_dict_lock:
             self.__threads = copy_thread_dict.copy()
     def start(self, check=True, thread = ''):
@@ -86,28 +86,29 @@ class taskHandler():
             temp_thread_dict = self.__threads.copy()
         reports = [] # we need to pass a list of reports so the all get displayed at the same time. 
         for thread in temp_thread_dict: #pylint: disable=C0206
-            if temp_thread_dict[thread][0].is_alive():
-                dto = logger_dto(time=datetime.datetime.now(), message="Is Running")
-                reports.append((thread, dto, "Running"))
-                self.__logger.send_log(f"Thread {thread} is Running. ")
-            else :
-                if temp_thread_dict[thread][1].get_status() == "Complete":
-                    try:
-                        doneTime = self.__completed_tasks[thread]
-                        # print(f"{datetime.datetime.now().timestamp()} {doneTime.timestamp()}")
-                        if (int (datetime.datetime.now().timestamp()) - int (doneTime.timestamp())) > 5 : # five second time out
-                            del self.__completed_tasks[thread]
-                    except : # pylint: disable=w0702
-                        self.__completed_tasks[thread] = datetime.datetime.now()
-                        doneTime = self.__completed_tasks[thread]
-                    
-                    dto = logger_dto(time=doneTime, message="Complete")
-                    reports.append((thread, dto, 'Complete'))
-                    self.__logger.send_log(f"Thread {thread} is Complete. ")
+            if temp_thread_dict[thread][2]: #check to see if the thread wants to be reported
+                if temp_thread_dict[thread][0].is_alive():
+                    dto = logger_dto(time=datetime.datetime.now(), message="Is Running")
+                    reports.append((thread, dto, "Running"))
+                    self.__logger.send_log(f"Thread {thread} is Running. ")
                 else :
-                    dto = logger_dto(time=datetime.datetime.now(), message="Error Occurred")
-                    reports.append((thread, dto, 'Error'))
-                    self.__logger.send_log(f"Thread {thread} had an Error. ")
+                    if temp_thread_dict[thread][1].get_status() == "Complete":
+                        try:
+                            doneTime = self.__completed_tasks[thread]
+                            # print(f"{datetime.datetime.now().timestamp()} {doneTime.timestamp()}")
+                            if (int (datetime.datetime.now().timestamp()) - int (doneTime.timestamp())) > 5 : # five second time out
+                                del self.__completed_tasks[thread]
+                        except : # pylint: disable=w0702
+                            self.__completed_tasks[thread] = datetime.datetime.now()
+                            doneTime = self.__completed_tasks[thread]
+                        
+                        dto = logger_dto(time=doneTime, message="Complete")
+                        reports.append((thread, dto, 'Complete'))
+                        self.__logger.send_log(f"Thread {thread} is Complete. ")
+                    else :
+                        dto = logger_dto(time=datetime.datetime.now(), message="Error Occurred")
+                        reports.append((thread, dto, 'Error'))
+                        self.__logger.send_log(f"Thread {thread} had an Error. ")
         self.__coms.report_thread(reports)
     def kill_tasks(self):
         '''
@@ -202,6 +203,30 @@ class taskHandler():
 
         #add the thread 
         self.add_thread(runFunction, taskID, wrapper, args = thread_args)      
+        #start the thread
+        self.start(check=False, thread=taskID) 
+        return True #this is 
+    def add_thread_request_no_report(self, args):
+        '''
+            This function is so that other class who dont know about the thread handler can send a request to start a new thread. (The gui display uses this.)
+            The thread added with this function will not be reported on the threading report.
+
+            ARGS:
+                args[0] : function to run
+                args[1] : the name you want the thread to have
+                args[2] : the class object of the thread. (Must inherit form the threadWrapper class)
+                args[3] : any args to be passed into the thread. 
+        '''
+        runFunction = args[0]
+        taskID = args[1]
+        wrapper = args[2] 
+        if len(args) > 3 : 
+            thread_args = args[3]
+        else : 
+            thread_args = None
+
+        #add the thread 
+        self.add_thread(runFunction, taskID, wrapper, args = thread_args, report=False)      
         #start the thread
         self.start(check=False, thread=taskID) 
         return True #this is 

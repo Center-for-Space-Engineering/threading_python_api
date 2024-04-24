@@ -14,6 +14,19 @@ This class is the bin that holds all the threads. It keeps a dictionary that hol
 5. `kill_Tasks`: sets threads `__RUNNING` vars to false. It is up to the user to make sure this ends the task.
 6. `pass_request`: takes in a thread name and a list of args, the first index in the list should be the function name that the user wants to call. In additional args can be store after that first index in the list. It returns a request id. 
 7. `pass_return`: takes in a thread name and a request id. Then checks to see if there is a return value for that request. If there is it returns that. Otherwise it returns None. 
+8. `check request`: checks to see if a request has been completed. 
+9. `add_thread_request_func` : you can call this function form other class (most often with the coms class) to add a new thread to the thread pool. 
+Example:
+```python
+    self.__coms.send_request('task_handler', ['add_thread_request_func', self.process_gps_packets, f'processing data for {self.__name} ', self, [data_ready_for_processing]]) #start a thread to process data
+
+```
+10. `add_thread_request_no_report` : same as the function above, but turns off reporting.
+Example:
+```python
+self.__coms.send_request('task_handler', ['add_thread_request_no_report', self.send_data, f'sending data for {self.__thread_name} ', self, [data_dict_copy]]) #start a thread to process data                            
+
+```
 
 ## Thread Wrapper
 This class is meant to be inherited by users class. It provides the implementations that `Task Handler` needs in order to run. 
