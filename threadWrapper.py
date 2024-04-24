@@ -30,7 +30,6 @@ class threadWrapper():
         self.__completed_requests = {}
         self.__function_dict = function_dict #this dictionary contains the list of function from the parent class that can be run in this context
 
-
         ###### Set up events ######
         self.__event_dict = {}
         if event_dict is not None:
@@ -134,7 +133,7 @@ class threadWrapper():
             ##### sleep if no task are needed. #####
             if sleep: # This lowers over all system usage. 
                 time.sleep(0.1)
-                sleep = False 
+                sleep = False
     def set_event(self, event):
         '''
             this function lets the class know that an event has happened
