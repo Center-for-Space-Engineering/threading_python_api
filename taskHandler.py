@@ -41,7 +41,8 @@ class taskHandler():
         self.__request_lock = threading.Lock()
         self.__name = task_handler_name
         self.__func_map = {
-            'add_thread_request_func' : self.add_thread_request_func 
+            'add_thread_request_func' : self.add_thread_request_func,
+            'add_thread_request_no_report' : self.add_thread_request_no_report
         }
     def add_thread(self, runFunction, taskID, wrapper, args = None, report = True):
         ''''
@@ -229,7 +230,7 @@ class taskHandler():
             thread_args = args[3]
         else : 
             thread_args = None
-
+        
         #add the thread 
         self.add_thread(runFunction, taskID, wrapper, args = thread_args, report=False)      
         #start the thread
