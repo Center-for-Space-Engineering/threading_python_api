@@ -230,6 +230,10 @@ class taskHandler():
             thread_args = args[3]
         else : 
             thread_args = None
+
+        with self.__thread_dict_lock:
+            if taskID in self.__threads:
+                raise RuntimeError(f"Thread with id {taskID} already exists.")
         
         #add the thread 
         self.add_thread(runFunction, taskID, wrapper, args = thread_args, report=False)      
