@@ -31,12 +31,12 @@ class taskHandler():
         and pass the function name and args to it. The `pass_return` return then checks to see if the task has completed 
         the request and returns None or the value from the task.
     '''
-    def __init__(self, coms, task_handler_name = 'task_handler'):
+    def __init__(self, coms, task_handler_name = 'task_handler', coms_name:str = 'coms'):
         self.__threads = {}
         self.__coms = coms 
         self.__logger = loggerCustom("logs/taskHandler.txt")
         self.__thread_dict_lock = threading.Lock()
-        self.add_thread(self.__coms.run, "Coms/Graphics_Handler", self.__coms)
+        self.add_thread(self.__coms.run, coms_name, self.__coms)
         self.__completed_tasks = {}
         self.__request_lock = threading.Lock()
         self.__name = task_handler_name
