@@ -37,32 +37,49 @@ class threadWrapper():
                 self.__event_dict[event] = [threading.Event(), event_dict[event]] # key event name, value [event object (threading.Event()), function to call.]
     def get_status(self):
         # pylint: disable=missing-function-docstring
-        with self.__lock_status:
-            return self.__status
+        if self.__lock_status.acquire(timeout=1):
+            temp = self.__status
+            self.__lock_status.release()
+        else : 
+            raise RuntimeError("Could not aquire status lock")
+        return temp
     def set_status(self, status):
         # pylint: disable=missing-function-docstring
-        with self.__lock_status:
+        if self.__lock_status.acquire(timeout=1):
             self.__status = status
+            self.__lock_status.release()
+        else : 
+            raise RuntimeError("Could not aquire stat lock")
 
     def get_running(self):
         # pylint: disable=missing-function-docstring
-        with self.__lock_running:
-            return self.__RUNNING
+        if self.__lock_running.acquire(timeout=1):
+            temp = self.__RUNNING
+            self.__lock_running.release()
+        else : 
+            raise RuntimeError("Could not aquire running lock")
+        return temp
     def kill_Task(self):
         '''
             Shut down the task when this is called. 
         '''
-        with self.__lock_running:
+        if self.__lock_running.acquire(timeout=1):
             self.__RUNNING = False
+            self.__lock_running.release()
+        else :
+            raise RuntimeError("Could not aquire running lock")
     
     def make_request(self, type_request, args = []): #pylint: disable=w0102
         '''
             Make a request to to the THREAD, it then returns the task number that you can pass to get Request to see if your task has been completed. 
         '''
-        with self.__request_lock:
+        if self.__request_lock.acquire(timeout=1):
             self.__request_num += 1
             self.__request.append([type_request, args, False, None, self.__request_num])
             temp = self.__request_num # set a local var to the request num so we can release the mutex
+            self.__request_lock.release()
+        else : 
+            raise RuntimeError("Could not acquire request lock")
         return temp
     
     def check_request(self, requestNum):
@@ -75,31 +92,41 @@ class threadWrapper():
             output:
                 true/false
         '''
-        with self.__request_lock:
+        if self.__request_lock.acquire(timeout=1):
             try :
                 # pylint: disable=W0104
                 self.__completed_requests[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
-                return True
+                temp = True
             except : # pylint: disable=W0702
-                return False 
+                temp = False 
+            self.__request_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire request lock")
+        return temp
     def get_request(self, requestNum):
         '''
             Check to see if the task has been complete, if it returns None then it has not been completed. 
         '''
-        with self.__request_lock:
+        if self.__request_lock.acquire(timeout=1):
             try :
                 temp = self.__completed_requests[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
                 del self.__completed_requests[requestNum] # delete the completed task to save space
-                return temp
             except : # pylint: disable=W0702
-                return None 
+                temp = None
+            self.__request_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire request lock")
+        return temp
     def get_next_request(self):
         # pylint: disable=missing-function-docstring
-        with self.__request_lock: 
+        if self.__request_lock.acquire(timeout=1): 
             if len(self.__request) > 0:
                 temp = self.__request.pop(0) # set a local var to the request num so we can release the mutex
             else :
                 temp = None
+            self.__request_lock.release()
+        else :
+            raise RuntimeError("Could not acquire request lock")
         return temp
     def complete_request(self, key, returnVal):
         # pylint: disable=missing-function-docstring

@@ -51,8 +51,11 @@ class taskHandler():
             In side the dictionary it holds the threads. 
         '''
 
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             copy_thread_dict = self.__threads.copy()
+            self.__thread_dict_lock.release()
+        else :
+            raise RuntimeError('Could not aquire thread dict lock')
         if args is None:
             copy_thread_dict[taskID] = (threading.Thread(target=runFunction), wrapper, report)
             dto = print_message_dto(f"Thread {taskID} created with no args. ")
@@ -63,14 +66,20 @@ class taskHandler():
             dto = print_message_dto(f"Thread {taskID} created. ")
             self.__coms.print_message(dto)
             self.__logger.send_log(f"Thread {taskID} created. ")
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             self.__threads = copy_thread_dict.copy()
+            self.__thread_dict_lock.release()
+        else :
+            raise RuntimeError("Could not aquire thread dict lock")
     def start(self, check=True, thread = ''):
         '''
             starts all the threads in the threads dictionary
         '''
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             copy_thread_dict = self.__threads.copy()
+            self.__thread_dict_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire thread dict lock")
         if check :
             for thread_stored in copy_thread_dict: #pylint: disable=C0206
                 if copy_thread_dict[thread_stored][1].get_status() == "NOT STARTED":
@@ -85,15 +94,17 @@ class taskHandler():
         '''
             Gets the thread status, then sends message to the `Message handler class`
         '''
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             temp_thread_dict = self.__threads.copy()
+            self.__thread_dict_lock.release()
+        else : 
+            raise RuntimeError("Could not acquire thread dict lock")
         reports = [] # we need to pass a list of reports so the all get displayed at the same time. 
         for thread in temp_thread_dict: #pylint: disable=C0206
             if temp_thread_dict[thread][2]: #check to see if the thread wants to be reported
                 if temp_thread_dict[thread][0].is_alive():
                     dto = logger_dto(time=datetime.datetime.now(), message="Is Running")
                     reports.append((thread, dto, "Running"))
-                    self.__logger.send_log(f"Thread {thread} is Running. ")
                 else :
                     if temp_thread_dict[thread][1].get_status() == "Complete":
                         try:
@@ -107,7 +118,6 @@ class taskHandler():
                         
                         dto = logger_dto(time=doneTime, message="Complete")
                         reports.append((thread, dto, 'Complete'))
-                        self.__logger.send_log(f"Thread {thread} is Complete. ")
                     else :
                         dto = logger_dto(time=datetime.datetime.now(), message="Error Occurred")
                         reports.append((thread, dto, 'Error'))
@@ -117,8 +127,11 @@ class taskHandler():
         '''
             This function is set running to false. It is up to the user to makes sure the task stops running after that. 
         '''
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             temp_thread_dict = self.__threads.copy()
+            self.__thread_dict_lock.release()
+        else : 
+            raise RuntimeError("Could not acquire thread dict lock")
         for thread in temp_thread_dict: #pylint: disable=C0206
             temp_thread_dict[thread][1].kill_Task()
             while temp_thread_dict[thread][0].is_alive():
@@ -139,9 +152,12 @@ class taskHandler():
                 NOTE: even if  you are only passing one thing it needs to be a list! 
                     EX: ['funcName']
         '''
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             copy_thread_dict = self.__threads.copy()
-        with self.__request_lock:
+            self.__thread_dict_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire thread dict lock")
+        if self.__request_lock.acquire(timeout=1):
             try :
                 if len(request) > 0:
                     if self.__name == thread:
@@ -155,6 +171,9 @@ class taskHandler():
                         temp = copy_thread_dict[thread][1].make_request(request[0])
             except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {request[0]}: {e}"
+            self.__request_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire request lock")
         return temp 
     def pass_return(self, thread, requestNum):
         '''
@@ -163,13 +182,19 @@ class taskHandler():
                 thread: The name of the thread as you see it on the gui, or as it is set in main.py
                 requestNum: the number that you got from passRequests, this is basically your ticket to map info back and forth.
         '''
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             copy_thread_dict = self.__threads.copy()
-        with self.__request_lock:
+            self.__thread_dict_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire thread dict lock")
+        if self.__request_lock.acquire(timeout=1):
             try : 
                 temp = copy_thread_dict[thread][1].get_request(requestNum)
             except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {thread}: {e}"
+            self.__request_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire request lock")
         return temp 
     def check_request(self, thread, requestNum):
         '''
@@ -181,13 +206,19 @@ class taskHandler():
                 requestNum
             output:
         '''
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             copy_thread_dict = self.__threads.copy()
-        with self.__request_lock:
+            self.__thread_dict_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire thread dict lock")
+        if self.__request_lock.acquire(timeout=1):
             try :
                 temp = copy_thread_dict[thread][1].check_request(requestNum)
             except Exception as e: #pylint: disable=W0718
                 temp = f"Error in calling thread {thread}: {e}"
+            self.__request_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire request lock")
         return temp
     def add_thread_request_func(self, args):
         '''
@@ -231,9 +262,12 @@ class taskHandler():
         else : 
             thread_args = None
 
-        with self.__thread_dict_lock:
+        if self.__thread_dict_lock.acquire(timeout=1):
             if taskID in self.__threads:
                 raise RuntimeError(f"Thread with id {taskID} already exists.")
+            self.__thread_dict_lock.release()
+        else : 
+            raise RuntimeError("Could not aquire thread dict lock")
         
         #add the thread 
         self.add_thread(runFunction, taskID, wrapper, args = thread_args, report=False)      
