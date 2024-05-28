@@ -37,7 +37,7 @@ class threadWrapper():
                 self.__event_dict[event] = [threading.Event(), event_dict[event]] # key event name, value [event object (threading.Event()), function to call.]
     def get_status(self):
         # pylint: disable=missing-function-docstring
-        if self.__lock_status.acquire(timeout=1):
+        if self.__lock_status.acquire(timeout=1): # pylint: disable=R1732
             temp = self.__status
             self.__lock_status.release()
         else : 
@@ -45,7 +45,7 @@ class threadWrapper():
         return temp
     def set_status(self, status):
         # pylint: disable=missing-function-docstring
-        if self.__lock_status.acquire(timeout=1):
+        if self.__lock_status.acquire(timeout=1): # pylint: disable=R1732
             self.__status = status
             self.__lock_status.release()
         else : 
@@ -53,7 +53,7 @@ class threadWrapper():
 
     def get_running(self):
         # pylint: disable=missing-function-docstring
-        if self.__lock_running.acquire(timeout=1):
+        if self.__lock_running.acquire(timeout=1): # pylint: disable=R1732
             temp = self.__RUNNING
             self.__lock_running.release()
         else : 
@@ -63,7 +63,7 @@ class threadWrapper():
         '''
             Shut down the task when this is called. 
         '''
-        if self.__lock_running.acquire(timeout=1):
+        if self.__lock_running.acquire(timeout=1): # pylint: disable=R1732
             self.__RUNNING = False
             self.__lock_running.release()
         else :
@@ -73,7 +73,7 @@ class threadWrapper():
         '''
             Make a request to to the THREAD, it then returns the task number that you can pass to get Request to see if your task has been completed. 
         '''
-        if self.__request_lock.acquire(timeout=1):
+        if self.__request_lock.acquire(timeout=1): # pylint: disable=R1732
             self.__request_num += 1
             self.__request.append([type_request, args, False, None, self.__request_num])
             temp = self.__request_num # set a local var to the request num so we can release the mutex
@@ -92,7 +92,7 @@ class threadWrapper():
             output:
                 true/false
         '''
-        if self.__request_lock.acquire(timeout=1):
+        if self.__request_lock.acquire(timeout=1): # pylint: disable=R1732
             try :
                 # pylint: disable=W0104
                 self.__completed_requests[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
@@ -107,7 +107,7 @@ class threadWrapper():
         '''
             Check to see if the task has been complete, if it returns None then it has not been completed. 
         '''
-        if self.__request_lock.acquire(timeout=1):
+        if self.__request_lock.acquire(timeout=1): # pylint: disable=R1732
             try :
                 temp = self.__completed_requests[requestNum] #this check to see if it is complete or not, because if it is not it just fails and goes to the except block. 
                 del self.__completed_requests[requestNum] # delete the completed task to save space
@@ -119,7 +119,7 @@ class threadWrapper():
         return temp
     def get_next_request(self):
         # pylint: disable=missing-function-docstring
-        if self.__request_lock.acquire(timeout=1): 
+        if self.__request_lock.acquire(timeout=1): # pylint: disable=R1732
             if len(self.__request) > 0:
                 temp = self.__request.pop(0) # set a local var to the request num so we can release the mutex
             else :
