@@ -214,9 +214,10 @@ class taskHandler():
         if self.__request_lock.acquire(timeout=1): # pylint: disable=R1732
             try :
                 temp = copy_thread_dict[thread][1].check_request(requestNum)
+                self.__request_lock.release()
             except Exception as e: #pylint: disable=W0718
+                self.__request_lock.release()
                 temp = f"Error in calling thread {thread}: {e}"
-            self.__request_lock.release()
         else : 
             raise RuntimeError("Could not aquire request lock")
         return temp
