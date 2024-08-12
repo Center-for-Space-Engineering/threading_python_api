@@ -38,7 +38,6 @@ class taskHandler():
         self.__thread_dict_lock = threading.Lock()
         self.add_thread(self.__coms.run, coms_name, self.__coms)
         self.__completed_tasks = {}
-        self.__request_lock = threading.Lock()
         self.__name = task_handler_name
         self.__func_map = {
             'add_thread_request_func' : self.add_thread_request_func,
@@ -157,23 +156,19 @@ class taskHandler():
             self.__thread_dict_lock.release()
         else : 
             raise RuntimeError("Could not aquire thread dict lock")
-        if self.__request_lock.acquire(timeout=1): # pylint: disable=R1732
-            try :
-                if len(request) > 0:
-                    if self.__name == thread:
-                        temp = self.__func_map[request[0]](request[1:])
-                    else : 
-                        temp = copy_thread_dict[thread][1].make_request(request[0], args = request[1:])
-                else :
-                    if self.__name == thread: 
-                        temp = self.__func_map[request[0]]()
-                    else : 
-                        temp = copy_thread_dict[thread][1].make_request(request[0])
-            except Exception as e: #pylint: disable=W0718
-                temp = f"Error in calling thread {request[0]}: {e}"
-            self.__request_lock.release()
-        else : 
-            raise RuntimeError("Could not aquire request lock")
+        try :
+            if len(request) > 0:
+                if self.__name == thread:
+                    temp = self.__func_map[request[0]](request[1:])
+                else : 
+                    temp = copy_thread_dict[thread][1].make_request(request[0], args = request[1:])
+            else :
+                if self.__name == thread: 
+                    temp = self.__func_map[request[0]]()
+                else : 
+                    temp = copy_thread_dict[thread][1].make_request(request[0])
+        except Exception as e: #pylint: disable=W0718
+            temp = f"Error in calling thread {request[0]}: {e}"
         return temp 
     def pass_return(self, thread, requestNum):
         '''
@@ -187,14 +182,10 @@ class taskHandler():
             self.__thread_dict_lock.release()
         else : 
             raise RuntimeError("Could not aquire thread dict lock")
-        if self.__request_lock.acquire(timeout=1): # pylint: disable=R1732
-            try : 
-                temp = copy_thread_dict[thread][1].get_request(requestNum)
-            except Exception as e: #pylint: disable=W0718
-                temp = f"Error in calling thread {thread}: {e}"
-            self.__request_lock.release()
-        else : 
-            raise RuntimeError("Could not aquire request lock")
+        try : 
+            temp = copy_thread_dict[thread][1].get_request(requestNum)
+        except Exception as e: #pylint: disable=W0718
+            temp = f"Error in calling thread {thread}: {e}"
         return temp 
     def check_request(self, thread, requestNum):
         '''
@@ -211,15 +202,10 @@ class taskHandler():
             self.__thread_dict_lock.release()
         else : 
             raise RuntimeError("Could not aquire thread dict lock")
-        if self.__request_lock.acquire(timeout=1): # pylint: disable=R1732
-            try :
-                temp = copy_thread_dict[thread][1].check_request(requestNum)
-                self.__request_lock.release()
-            except Exception as e: #pylint: disable=W0718
-                self.__request_lock.release()
-                temp = f"Error in calling thread {thread}: {e}"
-        else : 
-            raise RuntimeError("Could not aquire request lock")
+        try :
+            temp = copy_thread_dict[thread][1].check_request(requestNum)
+        except Exception as e: #pylint: disable=W0718
+            temp = f"Error in calling thread {thread}: {e}"
         return temp
     def add_thread_request_func(self, args):
         '''

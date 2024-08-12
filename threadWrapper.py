@@ -136,12 +136,14 @@ class threadWrapper():
             This function is for multi threading purpose. It works by using a FIFO queue to process Task assigned to it by other threads.
         '''
         self.set_status("Running")
-        sleep = False
+        
         while self.get_running():
+            sleep = True
             ##### Check Events #####
             #check every event that we know about
             for event in self.__event_dict: # pylint: disable=C0206
                 if self.__event_dict[event][0].is_set():
+                    sleep = False
                     self.__event_dict[event][1](event) #call the event function
                     self.clear_event(event=event) #clear the event
 
@@ -154,13 +156,14 @@ class threadWrapper():
                 else : 
                     request[3] = self.__function_dict[request[0]]()
                 self.complete_request(request[4], request[3])
-            else :
-                sleep = True
+                sleep = False
 
             ##### sleep if no task are needed. #####
             if sleep: # This lowers over all system usage. 
-                time.sleep(0.1)
+                time.sleep(0.5)
                 sleep = False
+    
+
     def set_event(self, event):
         '''
             this function lets the class know that an event has happened
