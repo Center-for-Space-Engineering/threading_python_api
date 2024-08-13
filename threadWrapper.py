@@ -34,7 +34,7 @@ class threadWrapper():
         self.__event_dict = {}
         if event_dict is not None:
             for event in event_dict:
-                self.__event_dict[event] = [threading.Event(), event_dict[event]] # key event name, value [event object (threading.Event()), function to call.]
+                self.__event_dict[event] = [False, event_dict[event]] # key event name, value [event object (T/F for seeing if event has been triggered), function to call.]
     def get_status(self):
         # pylint: disable=missing-function-docstring
         if self.__lock_status.acquire(timeout=1): # pylint: disable=R1732
@@ -142,7 +142,7 @@ class threadWrapper():
             ##### Check Events #####
             #check every event that we know about
             for event in self.__event_dict: # pylint: disable=C0206
-                if self.__event_dict[event][0].is_set():
+                if self.__event_dict[event][0]:
                     sleep = False
                     self.__event_dict[event][1](event) #call the event function
                     self.clear_event(event=event) #clear the event
@@ -160,7 +160,7 @@ class threadWrapper():
 
             ##### sleep if no task are needed. #####
             if sleep: # This lowers over all system usage. 
-                time.sleep(0.5)
+                time.sleep(0.05)
                 sleep = False
     
 
@@ -168,10 +168,10 @@ class threadWrapper():
         '''
             this function lets the class know that an event has happened
         '''
-        self.__event_dict[event][0].set()
+        self.__event_dict[event][0] = True
 
     def clear_event(self, event):
         '''
             Clear the event.
         '''
-        self.__event_dict[event][0].clear()
+        self.__event_dict[event][0] = False
