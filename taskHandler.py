@@ -50,7 +50,7 @@ class taskHandler():
             In side the dictionary it holds the threads. 
         '''
 
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             copy_thread_dict = self.__threads.copy()
             self.__thread_dict_lock.release()
         else :
@@ -65,7 +65,7 @@ class taskHandler():
             dto = print_message_dto(f"Thread {taskID} created. ")
             self.__coms.print_message(dto)
             self.__logger.send_log(f"Thread {taskID} created. ")
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             self.__threads = copy_thread_dict.copy()
             self.__thread_dict_lock.release()
         else :
@@ -74,7 +74,7 @@ class taskHandler():
         '''
             starts all the threads in the threads dictionary
         '''
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             copy_thread_dict = self.__threads.copy()
             self.__thread_dict_lock.release()
         else : 
@@ -93,7 +93,7 @@ class taskHandler():
         '''
             Gets the thread status, then sends message to the `Message handler class`
         '''
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             temp_thread_dict = self.__threads.copy()
             self.__thread_dict_lock.release()
         else : 
@@ -126,7 +126,7 @@ class taskHandler():
         '''
             This function is set running to false. It is up to the user to makes sure the task stops running after that. 
         '''
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             temp_thread_dict = self.__threads.copy()
             self.__thread_dict_lock.release()
         else : 
@@ -151,7 +151,7 @@ class taskHandler():
                 NOTE: even if  you are only passing one thing it needs to be a list! 
                     EX: ['funcName']
         '''
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             copy_thread_dict = self.__threads.copy()
             self.__thread_dict_lock.release()
         else : 
@@ -177,7 +177,7 @@ class taskHandler():
                 thread: The name of the thread as you see it on the gui, or as it is set in main.py
                 requestNum: the number that you got from passRequests, this is basically your ticket to map info back and forth.
         '''
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             copy_thread_dict = self.__threads.copy()
             self.__thread_dict_lock.release()
         else : 
@@ -197,7 +197,7 @@ class taskHandler():
                 requestNum
             output:
         '''
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             copy_thread_dict = self.__threads.copy()
             self.__thread_dict_lock.release()
         else : 
@@ -249,7 +249,7 @@ class taskHandler():
         else : 
             thread_args = None
 
-        if self.__thread_dict_lock.acquire(timeout=1): # pylint: disable=R1732
+        if self.__thread_dict_lock.acquire(timeout=10): # pylint: disable=R1732
             if taskID in self.__threads:
                 raise RuntimeError(f"Thread with id {taskID} already exists.")
             self.__thread_dict_lock.release()
